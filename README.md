@@ -19,7 +19,7 @@ Open `index.html`, or `python3 -m http.server` and visit http://localhost:8000.
 Not medical advice. It does not diagnose or treat anything.
 
 ## Ethics
-See [ETHICS_CHARTER.md](ETHICS_CHARTER.md) for our principles, red lines and governance.
+See [ETHICS_CHARTER.md](ETHICS_CHARTER.md) for our principles, red lines and governance, and [SAFETY_AND_PRIVACY.md](SAFETY_AND_PRIVACY.md) for how we handle safety and data.
 
 ## Ideas
 Reminders/notifications, translations, clinical-trial finder (clinicaltrials.gov API), accessibility audit.
