@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CareCompanion</title>
+<link rel="stylesheet" href="src/style.css">
+</head>
+<body>
+<header>
+  <h1>CareCompanion</h1>
+  <p class="sub">A private, free helper for people going through cancer treatment and the people supporting them.</p>
+  <nav id="tabs" role="tablist">
+    <button data-tab="symptoms" class="active">Symptoms</button>
+    <button data-tab="meds">Medications</button>
+    <button data-tab="appts">Appointments</button>
+    <button data-tab="help">Support circle</button>
+    <button data-tab="data">Backup</button>
+  </nav>
+</header>
+
+<main>
+  <section id="symptoms" class="panel active">
+    <h2>Daily symptom log</h2>
+    <form id="symptom-form">
+      <label>Date <input type="date" name="date" required></label>
+      <label>Symptom <input name="symptom" placeholder="e.g. nausea, fatigue, pain" required></label>
+      <label>Severity (0–10) <input type="number" name="severity" min="0" max="10" value="3" required></label>
+      <label>Notes <input name="notes" placeholder="Anything that helped or made it worse"></label>
+      <button>Add</button>
+    </form>
+    <p class="warn">Severe symptoms (fever during chemo, trouble breathing, uncontrolled pain or vomiting) need a call to your care team or emergency services right away.</p>
+    <ul id="symptom-list" class="list"></ul>
+  </section>
+
+  <section id="meds" class="panel">
+    <h2>Medications</h2>
+    <form id="med-form">
+      <label>Name <input name="name" required></label>
+      <label>Dose <input name="dose" placeholder="e.g. 10 mg"></label>
+      <label>Time(s) <input name="times" placeholder="08:00, 20:00" required></label>
+      <button>Add</button>
+    </form>
+    <ul id="med-list" class="list"></ul>
+    <p class="hint">Check items off as you take them each day. Resets daily.</p>
+  </section>
+
+  <section id="appts" class="panel">
+    <h2>Appointments &amp; questions for the doctor</h2>
+    <form id="appt-form">
+      <label>Date &amp; time <input type="datetime-local" name="when" required></label>
+      <label>With / where <input name="who" placeholder="Dr. Smith, oncology" required></label>
+      <label>Questions to ask <input name="questions" placeholder="Separate with ;"></label>
+      <button>Add</button>
+    </form>
+    <ul id="appt-list" class="list"></ul>
+  </section>
+
+  <section id="help" class="panel">
+    <h2>Support circle</h2>
+    <p class="hint">List tasks friends and family can take on (rides, meals, groceries). Share this page's printout or backup file with them.</p>
+    <form id="task-form">
+      <label>Task <input name="task" placeholder="Drive to chemo on Tuesday" required></label>
+      <label>Date <input type="date" name="date"></label>
+      <button>Add</button>
+    </form>
+    <ul id="task-list" class="list"></ul>
+  </section>
+
+  <section id="data" class="panel">
+    <h2>Backup &amp; privacy</h2>
+    <p>All data stays in <strong>this browser only</strong>. Nothing is sent anywhere.</p>
+    <button id="export">Export backup</button>
+    <label class="file">Import backup <input type="file" id="import" accept="application/json"></label>
+    <button id="print">Print summary for doctor</button>
+    <button id="wipe" class="danger">Erase all data</button>
+  </section>
+</main>
+
+<footer>
+  <p>Not medical advice. This tool does not diagnose or treat. Always follow your care team's guidance.</p>
+</footer>
+<script src="src/app.js"></script>
+</body>
+</html>
