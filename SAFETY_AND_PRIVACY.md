@@ -92,11 +92,6 @@ We list these openly so they get fixed.
   is or is not serious.
 - The warning does not give country-specific emergency or crisis numbers.
 - There is no crisis or self-harm support information in the app yet.
-- Imported backup files are parsed without checking their structure. Most values
-  are escaped on display, but not all (for example, the severity value in the
-  symptom list), so a malicious or damaged file could break the page or run
-  unwanted script. Imports should be validated, and every displayed value
-  should be escaped.
 - Translations, including the safety warning, have not yet been reviewed by
   clinicians or native speakers.
 
@@ -164,8 +159,10 @@ All of the above still applies, plus:
 
 - Escape or sanitize every value from user input or imported files before
   showing it. Avoid inserting raw HTML.
-- Validate imported backups: check structure and types, ignore unknown fields,
-  and limit size.
+- Imported backups and saved data are rebuilt field by field (`sanitize` in
+  `src/app.js`): unknown fields are dropped, types are enforced, severity is
+  clamped to 0–10, and file size and item counts are limited. Keep this in step
+  with any new field.
 - Keep the site free of third-party scripts. If one is ever added, review it
   first, pin versions and consider Subresource Integrity.
 - Serve over HTTPS only (GitHub Pages does this).
@@ -204,7 +201,7 @@ All of the above still applies, plus:
 - [ ] Add country-aware emergency and crisis information
 - [ ] Clinician review of the urgent-symptom list and wording
 - [ ] Gentle, rule-based prompt when a high-severity symptom is logged
-- [ ] Validate and escape imported data (see Known gaps)
+- [x] Validate and escape imported data
 - [ ] Plain-language privacy notice shown in the app
 - [ ] Optional passcode or encryption for local data and backups
 - [ ] Vulnerability reporting channel

@@ -1,7 +1,28 @@
 const KEY = 'carecompanion.v1';
+const uid = () => Math.random().toString(36).slice(2, 10);
 const empty = () => ({ symptoms: [], meds: [], appts: [], tasks: [], taken: {} });
+const MAX_FILE = 5 * 1024 * 1024, MAX_ITEMS = 5000, MAX_TEXT = 10000;
+const str = v => (typeof v === 'string' ? v : typeof v === 'number' && isFinite(v) ? String(v) : '').slice(0, MAX_TEXT);
+const list = (v, make) => (Array.isArray(v) ? v : []).slice(0, MAX_ITEMS)
+  .filter(x => x && typeof x === 'object' && !Array.isArray(x)).map(make);
+const id = x => str(x.id).replace(/[^\w-]/g, '').slice(0, 32) || uid();
+// Rebuild the data from scratch so only known fields with the right types survive.
+function sanitize(raw) {
+  const r = raw && typeof raw === 'object' ? raw : {};
+  const sev = n => Math.min(10, Math.max(0, Math.round(+n) || 0));
+  const taken = {};
+  if (r.taken && typeof r.taken === 'object' && !Array.isArray(r.taken))
+    Object.keys(r.taken).slice(0, MAX_ITEMS).forEach(k => { if (r.taken[k] === true) taken[k.slice(0, 200)] = true; });
+  return {
+    symptoms: list(r.symptoms, x => ({ id: id(x), symptom: str(x.symptom), severity: sev(x.severity), date: str(x.date), notes: str(x.notes) })),
+    meds: list(r.meds, x => ({ id: id(x), name: str(x.name), dose: str(x.dose), times: str(x.times) })),
+    appts: list(r.appts, x => ({ id: id(x), who: str(x.who), when: str(x.when), questions: str(x.questions) })),
+    tasks: list(r.tasks, x => ({ id: id(x), task: str(x.task), date: str(x.date), done: x.done === true })),
+    taken
+  };
+}
 let db;
-try { db = Object.assign(empty(), JSON.parse(localStorage.getItem(KEY))); } catch { db = empty(); }
+try { db = sanitize(JSON.parse(localStorage.getItem(KEY))); } catch { db = empty(); }
 const save = () => { try { localStorage.setItem(KEY, JSON.stringify(db)); } catch {} render(); };
 let lang = (navigator.language || '').startsWith('mk') ? 'mk' : 'en';
 try { lang = localStorage.getItem('carecompanion.lang') || lang; } catch {}
@@ -14,7 +35,6 @@ function translate() {
 }
 const $ = s => document.querySelector(s);
 const today = () => new Date().toISOString().slice(0, 10);
-const uid = () => Math.random().toString(36).slice(2, 10);
 
 function li(html, onDelete, cls = '') {
   const el = document.createElement('li');
@@ -33,7 +53,7 @@ const remove = (list, id) => { db[list] = db[list].filter(x => x.id !== id); sav
 function render() {
   const fill = (sel, items, make) => { const ul = $(sel); ul.replaceChildren(...items.map(make)); };
   fill('#symptom-list', [...db.symptoms].sort((a, b) => b.date.localeCompare(a.date)), s =>
-    li(`<span><strong>${esc(s.symptom)}</strong> ${s.severity}/10 <small>${esc(s.date)} ${esc(s.notes)}</small></span>`, () => remove('symptoms', s.id)));
+    li(`<span><strong>${esc(s.symptom)}</strong> ${esc(s.severity)}/10 <small>${esc(s.date)} ${esc(s.notes)}</small></span>`, () => remove('symptoms', s.id)));
   fill('#med-list', db.meds, m => {
     const times = m.times.split(',').map(t => t.trim()).filter(Boolean);
     const checks = times.map(t => {
@@ -86,8 +106,14 @@ $('#export').onclick = () => {
   a.download = `cancercompanion-${today()}.json`; a.click();
 };
 $('#import').onchange = async e => {
-  try { db = Object.assign(empty(), JSON.parse(await e.target.files[0].text())); save(); }
-  catch { alert(t('bad_file')); }
+  const file = e.target.files[0];
+  e.target.value = '';
+  try {
+    if (!file || file.size > MAX_FILE) throw new Error('bad file');
+    const raw = JSON.parse(await file.text());
+    if (!raw || typeof raw !== 'object' || Array.isArray(raw)) throw new Error('bad file');
+    db = sanitize(raw); save();
+  } catch { alert(t('bad_file')); }
 };
 $('#print').onclick = () => {
   document.querySelectorAll('.panel').forEach(p => p.classList.add('active'));
