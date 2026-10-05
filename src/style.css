@@ -21,5 +21,6 @@ button.danger{background:var(--danger)}
 .list small{display:block;color:#4a5a6a}
 .list .x{background:none;color:var(--danger);padding:.2rem .5rem}
 .warn{background:var(--warn);padding:.6rem;border-radius:6px;font-size:.9rem}
+.severe{border:2px solid #b3261e;margin:.6rem 0}.severe p{margin:0 0 .5rem}
 .hint,footer{color:#4a5a6a;font-size:.9rem}
-@media print{nav,form,button,.file,footer,.hint,.warn{display:none!important}.panel{display:block!important;border:0}}
+@media print{nav,form,button,.file,footer,.hint,.warn,.severe{display:none!important}.panel{display:block!important;border:0}}

@@ -5,6 +5,9 @@ const I18N = {
     h_symptoms: 'Daily symptom log', date: 'Date', symptom: 'Symptom', symptom_ph: 'e.g. nausea, fatigue, pain',
     severity: 'Severity (0–10)', notes: 'Notes', notes_ph: 'Anything that helped or made it worse', add: 'Add',
     warn: 'Severe symptoms (fever during chemo, trouble breathing, uncontrolled pain or vomiting) need a call to your care team or emergency services right away.',
+    // DRAFT wording for clinician review (see SAFETY_AND_PRIVACY.md). Shown when a symptom is logged at SEVERE_FROM or above.
+    severe: 'The symptom you just logged is at a high level. Please tell your care team today, even outside office hours: many clinics have an after-hours number. If you have trouble breathing, chest pain, heavy bleeding, fainting, sudden confusion, or you feel you are in danger, call your local emergency number now. If you can, ask someone you trust to be with you.',
+    dismiss: 'Dismiss',
     h_meds: 'Medications', name: 'Name', dose: 'Dose', dose_ph: 'e.g. 10 mg', times: 'Time(s)',
     meds_hint: 'Check items off as you take them each day. Resets daily.',
     h_appts: 'Appointments & questions for the doctor', when: 'Date & time', who: 'With / where', who_ph: 'Dr. Smith, oncology',
@@ -22,6 +25,9 @@ const I18N = {
     h_symptoms: 'Дневник на симптоми', date: 'Датум', symptom: 'Симптом', symptom_ph: 'пр. гадење, замор, болка',
     severity: 'Јачина (0–10)', notes: 'Белешки', notes_ph: 'Што помогнало или влошило', add: 'Додај',
     warn: 'Тешки симптоми (треска за време на хемотерапија, отежнато дишење, неконтролирана болка или повраќање) бараат веднаш да го повикате вашиот медицински тим или итна помош.',
+    // ЧЕРНОВА: текстот не е прегледан од лекари или мајчин јазик (види SAFETY_AND_PRIVACY.md).
+    severe: 'Симптомот што го внесовте е на високо ниво. Известете го вашиот медицински тим денес, дури и надвор од работно време: многу клиники имаат број за итни случаи. Ако имате отежнато дишење, болка во градите, силно крварење, несвестица, ненадејна збунетост или чувствувате дека сте во опасност, веднаш повикајте го локалниот број за итна помош. Ако можете, замолете некој близок да биде со вас.',
+    dismiss: 'Затвори',
     h_meds: 'Лекови', name: 'Име', dose: 'Доза', dose_ph: 'пр. 10 mg', times: 'Време(на)',
     meds_hint: 'Штиклирајте ги лековите кога ги земате. Се ресетира секој ден.',
     h_appts: 'Прегледи и прашања за лекарот', when: 'Датум и час', who: 'Со кого / каде', who_ph: 'Д-р Петровски, онкологија',
