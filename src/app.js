@@ -10,7 +10,7 @@ function translate() {
   document.documentElement.lang = lang;
   document.querySelectorAll('[data-i18n]').forEach(e => { e.textContent = t(e.dataset.i18n); });
   document.querySelectorAll('[data-i18n-ph]').forEach(e => { e.placeholder = t(e.dataset.i18nPh); });
-  document.title = 'CareCompanion';
+  document.title = 'CancerCompanion';
 }
 const $ = s => document.querySelector(s);
 const today = () => new Date().toISOString().slice(0, 10);
@@ -83,7 +83,7 @@ $('#tabs').onclick = e => {
 $('#export').onclick = () => {
   const a = document.createElement('a');
   a.href = URL.createObjectURL(new Blob([JSON.stringify(db, null, 2)], { type: 'application/json' }));
-  a.download = `carecompanion-${today()}.json`; a.click();
+  a.download = `cancercompanion-${today()}.json`; a.click();
 };
 $('#import').onchange = async e => {
   try { db = Object.assign(empty(), JSON.parse(await e.target.files[0].text())); save(); }

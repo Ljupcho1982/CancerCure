@@ -1,4 +1,4 @@
-# CareCompanion
+# CancerCompanion
 
 A free, private, no-install web app for people with cancer and their support circle.
 
