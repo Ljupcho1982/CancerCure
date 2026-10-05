@@ -30,6 +30,10 @@
       <label><span data-i18n="notes">Notes</span><input name="notes" data-i18n-ph="notes_ph"></label>
       <button data-i18n="add">Add</button>
     </form>
+    <div id="severe-notice" class="warn severe" role="alert" hidden>
+      <p data-i18n="severe">The symptom you just logged is at a high level. Please tell your care team today, even outside office hours: many clinics have an after-hours number. If you have trouble breathing, chest pain, heavy bleeding, fainting, sudden confusion, or you feel you are in danger, call your local emergency number now. If you can, ask someone you trust to be with you.</p>
+      <button type="button" id="severe-dismiss" data-i18n="dismiss">Dismiss</button>
+    </div>
     <p class="warn" data-i18n="warn">Severe symptoms (fever during chemo, trouble breathing, uncontrolled pain or vomiting) need a call to your care team or emergency services right away.</p>
     <ul id="symptom-list" class="list"></ul>
   </section>

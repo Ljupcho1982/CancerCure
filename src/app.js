@@ -83,7 +83,14 @@ function bindForm(sel, list, build) {
     save();
   };
 }
-bindForm('#symptom-form', 'symptoms', d => ({ ...d, severity: +d.severity }));
+// DRAFT threshold, to be set by clinicians. A reminder only: it never says a lower score is safe.
+const SEVERE_FROM = 7;
+bindForm('#symptom-form', 'symptoms', d => {
+  const severity = +d.severity;
+  $('#severe-notice').hidden = !(severity >= SEVERE_FROM);
+  return { ...d, severity };
+});
+$('#severe-dismiss').onclick = () => { $('#severe-notice').hidden = true; };
 bindForm('#med-form', 'meds', d => d);
 bindForm('#appt-form', 'appts', d => d);
 bindForm('#task-form', 'tasks', d => ({ ...d, done: false }));

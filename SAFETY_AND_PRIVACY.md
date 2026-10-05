@@ -85,11 +85,39 @@ The app shows a standing message telling users that severe symptoms (fever
 during chemotherapy, trouble breathing, uncontrolled pain or vomiting) need a
 call to their care team or emergency services right away.
 
+### High-severity prompt (DRAFT, awaiting clinician review)
+When a symptom is logged with severity **7 or above** (`SEVERE_FROM` in
+`src/app.js`), a notice appears under the form. It does not block anything, can
+be dismissed, and is not saved or printed. The English draft reads:
+
+> The symptom you just logged is at a high level. Please tell your care team
+> today, even outside office hours: many clinics have an after-hours number. If
+> you have trouble breathing, chest pain, heavy bleeding, fainting, sudden
+> confusion, or you feel you are in danger, call your local emergency number
+> now. If you can, ask someone you trust to be with you.
+
+Design choices:
+- It never says a lower score is safe or that nothing needs to be done. Below the
+  threshold nothing changes, and the standing warning stays visible.
+- It gives no invented phone numbers. It points to the user's own care team and
+  "your local emergency number" until verified, country-specific numbers exist.
+- Calm, short, no diagnosis, no blame, and it suggests not being alone.
+- A Macedonian draft is included. It has **not** been reviewed by a clinician or
+  native speaker.
+
+Questions for clinicians before this is relied on:
+1. Is 7 the right threshold? Should it differ by symptom (for example pain
+   versus fatigue), or should any score trigger a different message?
+2. Should the prompt also react to words in the symptom name or notes (such as
+   "fever", "bleeding", "can't breathe") regardless of score?
+3. Should repeated moderate scores over several days trigger a prompt?
+4. Is "today" the right urgency, and is the emergency list right?
+5. Does the wording avoid both false alarm and false reassurance?
+
 ### Known gaps
 We list these openly so they get fixed.
-- The warning is static. The symptom log does **not** react to what a user
-  enters, for example a high severity score. It does not tell a user a symptom
-  is or is not serious.
+- Only the severity score triggers the prompt above. A serious symptom logged
+  at a low score, or described in the symptom name or notes, does not.
 - The warning does not give country-specific emergency or crisis numbers.
 - There is no crisis or self-harm support information in the app yet.
 - Translations, including the safety warning, have not yet been reviewed by
@@ -200,7 +228,8 @@ All of the above still applies, plus:
 
 - [ ] Add country-aware emergency and crisis information
 - [ ] Clinician review of the urgent-symptom list and wording
-- [ ] Gentle, rule-based prompt when a high-severity symptom is logged
+- [x] Gentle, rule-based prompt when a high-severity symptom is logged (draft; needs clinician review of threshold and wording)
+- [ ] Keyword and repeated-score rules (needs clinician input)
 - [x] Validate and escape imported data
 - [ ] Plain-language privacy notice shown in the app
 - [ ] Optional passcode or encryption for local data and backups
