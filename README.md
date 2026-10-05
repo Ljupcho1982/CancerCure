@@ -20,3 +20,6 @@ Not medical advice. It does not diagnose or treat anything.
 
 ## Ideas
 Reminders/notifications, translations, clinical-trial finder (clinicaltrials.gov API), accessibility audit.
+
+## Deploy (GitHub Pages)
+`.github/workflows/pages.yml` deploys on every push to `main`. One-time setup: repo **Settings → Pages → Source: GitHub Actions**. The site will be at https://ljupcho1982.github.io/CancerCure/
