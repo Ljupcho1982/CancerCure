@@ -8,78 +8,80 @@
 </head>
 <body>
 <header>
+  <select id="lang" aria-label="Language" style="float:right"><option value="en">English</option><option value="mk">Македонски</option></select>
   <h1>CareCompanion</h1>
-  <p class="sub">A private, free helper for people going through cancer treatment and the people supporting them.</p>
+  <p class="sub" data-i18n="sub">A private, free helper for people going through cancer treatment and the people supporting them.</p>
   <nav id="tabs" role="tablist">
-    <button data-tab="symptoms" class="active">Symptoms</button>
-    <button data-tab="meds">Medications</button>
-    <button data-tab="appts">Appointments</button>
-    <button data-tab="help">Support circle</button>
-    <button data-tab="data">Backup</button>
+    <button data-tab="symptoms" class="active" data-i18n="tab_symptoms">Symptoms</button>
+    <button data-tab="meds" data-i18n="tab_meds">Medications</button>
+    <button data-tab="appts" data-i18n="tab_appts">Appointments</button>
+    <button data-tab="help" data-i18n="tab_help">Support circle</button>
+    <button data-tab="data" data-i18n="tab_data">Backup</button>
   </nav>
 </header>
 
 <main>
   <section id="symptoms" class="panel active">
-    <h2>Daily symptom log</h2>
+    <h2 data-i18n="h_symptoms">Daily symptom log</h2>
     <form id="symptom-form">
-      <label>Date <input type="date" name="date" required></label>
-      <label>Symptom <input name="symptom" placeholder="e.g. nausea, fatigue, pain" required></label>
-      <label>Severity (0–10) <input type="number" name="severity" min="0" max="10" value="3" required></label>
-      <label>Notes <input name="notes" placeholder="Anything that helped or made it worse"></label>
-      <button>Add</button>
+      <label><span data-i18n="date">Date</span><input type="date" name="date" required></label>
+      <label><span data-i18n="symptom">Symptom</span><input name="symptom" data-i18n-ph="symptom_ph" required></label>
+      <label><span data-i18n="severity">Severity (0–10)</span><input type="number" name="severity" min="0" max="10" value="3" required></label>
+      <label><span data-i18n="notes">Notes</span><input name="notes" data-i18n-ph="notes_ph"></label>
+      <button data-i18n="add">Add</button>
     </form>
-    <p class="warn">Severe symptoms (fever during chemo, trouble breathing, uncontrolled pain or vomiting) need a call to your care team or emergency services right away.</p>
+    <p class="warn" data-i18n="warn">Severe symptoms (fever during chemo, trouble breathing, uncontrolled pain or vomiting) need a call to your care team or emergency services right away.</p>
     <ul id="symptom-list" class="list"></ul>
   </section>
 
   <section id="meds" class="panel">
-    <h2>Medications</h2>
+    <h2 data-i18n="h_meds">Medications</h2>
     <form id="med-form">
-      <label>Name <input name="name" required></label>
-      <label>Dose <input name="dose" placeholder="e.g. 10 mg"></label>
-      <label>Time(s) <input name="times" placeholder="08:00, 20:00" required></label>
-      <button>Add</button>
+      <label><span data-i18n="name">Name</span><input name="name" required></label>
+      <label><span data-i18n="dose">Dose</span><input name="dose" data-i18n-ph="dose_ph"></label>
+      <label><span data-i18n="times">Time(s)</span><input name="times" placeholder="08:00, 20:00" required></label>
+      <button data-i18n="add">Add</button>
     </form>
     <ul id="med-list" class="list"></ul>
-    <p class="hint">Check items off as you take them each day. Resets daily.</p>
+    <p class="hint" data-i18n="meds_hint">Check items off as you take them each day. Resets daily.</p>
   </section>
 
   <section id="appts" class="panel">
-    <h2>Appointments &amp; questions for the doctor</h2>
+    <h2 data-i18n="h_appts">Appointments &amp; questions for the doctor</h2>
     <form id="appt-form">
-      <label>Date &amp; time <input type="datetime-local" name="when" required></label>
-      <label>With / where <input name="who" placeholder="Dr. Smith, oncology" required></label>
-      <label>Questions to ask <input name="questions" placeholder="Separate with ;"></label>
-      <button>Add</button>
+      <label><span data-i18n="when">Date &amp; time</span><input type="datetime-local" name="when" required></label>
+      <label><span data-i18n="who">With / where</span><input name="who" data-i18n-ph="who_ph" required></label>
+      <label><span data-i18n="questions">Questions to ask</span><input name="questions" data-i18n-ph="questions_ph"></label>
+      <button data-i18n="add">Add</button>
     </form>
     <ul id="appt-list" class="list"></ul>
   </section>
 
   <section id="help" class="panel">
-    <h2>Support circle</h2>
-    <p class="hint">List tasks friends and family can take on (rides, meals, groceries). Share this page's printout or backup file with them.</p>
+    <h2 data-i18n="h_help">Support circle</h2>
+    <p class="hint" data-i18n="help_hint">List tasks friends and family can take on (rides, meals, groceries). Share this page's printout or backup file with them.</p>
     <form id="task-form">
-      <label>Task <input name="task" placeholder="Drive to chemo on Tuesday" required></label>
-      <label>Date <input type="date" name="date"></label>
-      <button>Add</button>
+      <label><span data-i18n="task">Task</span><input name="task" data-i18n-ph="task_ph" required></label>
+      <label><span data-i18n="date">Date</span><input type="date" name="date"></label>
+      <button data-i18n="add">Add</button>
     </form>
     <ul id="task-list" class="list"></ul>
   </section>
 
   <section id="data" class="panel">
-    <h2>Backup &amp; privacy</h2>
-    <p>All data stays in <strong>this browser only</strong>. Nothing is sent anywhere.</p>
-    <button id="export">Export backup</button>
-    <label class="file">Import backup <input type="file" id="import" accept="application/json"></label>
-    <button id="print">Print summary for doctor</button>
-    <button id="wipe" class="danger">Erase all data</button>
+    <h2 data-i18n="h_data">Backup &amp; privacy</h2>
+    <p data-i18n="privacy">All data stays in this browser only. Nothing is sent anywhere.</p>
+    <button id="export" data-i18n="export">Export backup</button>
+    <label class="file"><span data-i18n="import">Import backup</span> <input type="file" id="import" accept="application/json"></label>
+    <button id="print" data-i18n="print">Print summary for doctor</button>
+    <button id="wipe" class="danger" data-i18n="wipe">Erase all data</button>
   </section>
 </main>
 
 <footer>
-  <p>Not medical advice. This tool does not diagnose or treat. Always follow your care team's guidance.</p>
+  <p data-i18n="footer">Not medical advice. This tool does not diagnose or treat. Always follow your care team's guidance.</p>
 </footer>
+<script src="src/i18n.js"></script>
 <script src="src/app.js"></script>
 </body>
 </html>

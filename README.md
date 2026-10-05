@@ -10,6 +10,8 @@ A free, private, no-install web app for people with cancer and their support cir
 
 All data stays in the browser (`localStorage`). No server, no tracking.
 
+Languages: English and Македонски (switch top-right; auto-detected from the browser). Add more in `src/i18n.js`.
+
 ## Run
 Open `index.html`, or `python3 -m http.server` and visit http://localhost:8000.
 
