@@ -28,7 +28,12 @@ select{font:inherit;padding:4px;border-radius:6px;border:1px solid var(--bd);bac
 <h1>Јев Мејл-Тријаж</h1>
 <div class="sub" id="cfg">…</div>
 <p class="sub">Едно мејл-писмо по блок: <code>Од | Наслов | Текст</code>, по една линија. Јев само предлага, не брише и не праќа.</p>
-<textarea id="in" placeholder="Од | Наслов | Текст (по еден мејл на линија)"></textarea>
+<textarea id="in">shop@promo.example | You are a WINNER! Free gift inside | Click to claim, unsubscribe below
+cto@firma.mk | URGENT: production is down | Customers cannot log in since 9am, please reply ASAP
+ana@firma.mk | Може ли состанок во четврток? | Дали можеш да потврдиш термин?
+no-reply@bank.example | Your monthly statement | Notification: your statement is ready
+lawyer@firm.example | Contract amendment for review | Please review the attached договор before Friday
+friend@mail.example | Hey | Long time no see, what's up</textarea>
 <div class="bar"><button class="p" id="go">Тријажирај</button><button id="gm">Вчитај непрочитани од Gmail</button></div>
 <div class="stats" id="stats"></div>
 <div class="bar tabs"><button data-t="all" class="on">Сите</button><button data-t="human">За човек</button></div>
@@ -41,9 +46,9 @@ const ACT={reply:'Одговори',delegate:'Делегирај',archive:'Ар�
 const ORDER=['urgent','reply_today','routine','info','spam'];
 let emails=[],results=[],tab='all';
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-fetch('/api/config').then(r=>r.json()).then(c=>{document.getElementById('cfg').textContent=`Праг: ${c.threshold}% · Модел: ${c.ai?'Claude (API)':'НЕМА API-клуч'} · Gmail: ${c.gmail?'поврзан':'не е поврзан'}`});
+fetch('/api/config').then(r=>r.json()).then(c=>{document.getElementById('cfg').textContent=`Праг: ${c.threshold}% · Модел: ${c.ai?'Claude (API)':'правила (без API-клуч)'} · Gmail: ${c.gmail?'поврзан':'не е поврзан'}`});
 const parse=()=>document.getElementById('in').value.split('\n').filter(l=>l.trim()).map((l,i)=>{const[p0='',p1='',...r]=l.split('|').map(s=>s.trim());return{id:'m'+i,from:p0,subject:p1,body:r.join(' | ')}});
-async function run(list){if(!list.length)return;const r=await fetch('/api/triage',{method:'POST',body:JSON.stringify({emails:list})});const d=await r.json();if(d.error)return alert(d.error);emails=list;results=d;render()}
+async function run(list){emails=list;results=await (await fetch('/api/triage',{method:'POST',body:JSON.stringify({emails})})).json();render()}
 function render(){
   const by=Object.fromEntries(emails.map(e=>[e.id,e]));
   let rs=results.filter(r=>tab==='all'||r.needsHuman).sort((a,b)=>ORDER.indexOf(a.category)-ORDER.indexOf(b.category));
@@ -64,6 +69,7 @@ document.getElementById('out').addEventListener('change',async ev=>{
 document.getElementById('go').onclick=()=>run(parse());
 document.getElementById('gm').onclick=async()=>{const r=await fetch('/api/gmail');const d=await r.json();if(d.error)return alert(d.error);run(d)};
 document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>{tab=b.dataset.t;document.querySelectorAll('.tabs button').forEach(x=>x.classList.toggle('on',x===b));render()});
+run(parse());
 </script>
 </body>
 </html>

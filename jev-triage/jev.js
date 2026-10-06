@@ -20,6 +20,25 @@ export async function saveFeedback(item) {
   await writeFile(FEEDBACK_FILE, JSON.stringify(all.slice(-200), null, 2));
 }
 
+// Offline fallback so the app works without an API key.
+export function heuristic({ from = '', subject = '', body = '' }) {
+  const t = `${from} ${subject} ${body}`.toLowerCase();
+  const has = (...w) => w.some(x => t.includes(x));
+  let r;
+  if (has('unsubscribe', 'winner', 'free gift', 'lottery', 'crypto giveaway', 'одјави'))
+    r = ['spam', 'delete', 88, 'Typical promotional/spam wording.'];
+  else if (has('urgent', 'asap', 'deadline today', 'immediately', 'хитно', 'outage', 'down'))
+    r = ['urgent', 'reply', 84, 'Contains urgency markers.'];
+  else if (has('invoice', 'contract', 'lawsuit', 'legal', 'diagnosis', 'договор', 'фактура'))
+    r = ['reply_today', 'reply', 55, 'Sensitive topic, needs a human look.'];
+  else if (has('?', 'can you', 'could you', 'please', 'дали можеш'))
+    r = ['reply_today', 'reply', 78, 'Direct question to you.'];
+  else if (has('newsletter', 'receipt', 'no-reply', 'noreply', 'digest', 'notification'))
+    r = ['info', 'archive', 90, 'Automated informational message.'];
+  else r = ['routine', 'snooze', 60, 'No clear signal.'];
+  return { category: r[0], action: r[1], confidence: r[2], reason: r[3] };
+}
+
 export function normalize(raw) {
   const category = CATEGORIES.includes(raw?.category) ? raw.category : 'routine';
   const action = ACTIONS.includes(raw?.action) ? raw.action : 'snooze';
@@ -51,8 +70,11 @@ async function callModel(email, examples) {
 }
 
 export async function triage(email) {
-  if (!process.env.ANTHROPIC_API_KEY) throw new Error('ANTHROPIC_API_KEY is not set');
   const started = Date.now();
-  const raw = await callModel(email, await loadFeedback());
-  return { id: email.id, ...normalize(raw), engine: MODEL, ms: Date.now() - started };
+  let raw, engine = 'heuristic';
+  if (process.env.ANTHROPIC_API_KEY) {
+    try { raw = await callModel(email, await loadFeedback()); engine = MODEL; }
+    catch (e) { raw = { ...heuristic(email), reason: `Fallback (${e.message}). ` + heuristic(email).reason }; }
+  } else raw = heuristic(email);
+  return { id: email.id, ...normalize(raw), engine, ms: Date.now() - started };
 }
