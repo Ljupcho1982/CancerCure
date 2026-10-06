@@ -27,7 +27,7 @@ select{font:inherit;padding:4px;border-radius:6px;border:1px solid var(--bd);bac
 <main>
 <h1>Јев Мејл-Тријаж</h1>
 <div class="sub" id="cfg">…</div>
-<p class="sub">Едно мејл-писмо по блок: <code>Од | Наслов | Текст</code>, по една линија. Јев само предлага, не брише и не праќа.</p>
+<p class="sub">Еден мејл по линија: <code>Од | Наслов | Текст</code>. Јев само предлага, не брише и не праќа.</p>
 <textarea id="in">shop@promo.example | You are a WINNER! Free gift inside | Click to claim, unsubscribe below
 cto@firma.mk | URGENT: production is down | Customers cannot log in since 9am, please reply ASAP
 ana@firma.mk | Може ли состанок во четврток? | Дали можеш да потврдиш термин?
@@ -44,11 +44,21 @@ const COL={urgent:'var(--urgent)',reply_today:'var(--today)',routine:'var(--rout
 const NAME={urgent:'Хитно',reply_today:'Одговори денес',routine:'Рутинско',info:'Информативно',spam:'Спам'};
 const ACT={reply:'Одговори',delegate:'Делегирај',archive:'Архивирај',snooze:'Одложи',delete:'Избриши (потврда)'};
 const ORDER=['urgent','reply_today','routine','info','spam'];
-let emails=[],results=[],tab='all';
+const THRESHOLD=80;
+function heuristic(e){const t=(e.from+' '+e.subject+' '+e.body).toLowerCase(),has=(...w)=>w.some(x=>t.includes(x));let r;
+ if(has('unsubscribe','winner','free gift','lottery','crypto giveaway','одјави'))r=['spam','delete',88,'Typical promotional/spam wording.'];
+ else if(has('urgent','asap','deadline today','immediately','хитно','outage','down'))r=['urgent','reply',84,'Contains urgency markers.'];
+ else if(has('invoice','contract','lawsuit','legal','diagnosis','договор','фактура'))r=['reply_today','reply',55,'Sensitive topic, needs a human look.'];
+ else if(has('?','can you','could you','please','дали можеш'))r=['reply_today','reply',78,'Direct question to you.'];
+ else if(has('newsletter','receipt','no-reply','noreply','digest','notification'))r=['info','archive',90,'Automated informational message.'];
+ else r=['routine','snooze',60,'No clear signal.'];
+ return{id:e.id,category:r[0],action:r[1],confidence:r[2],reason:r[3],needsHuman:r[2]<THRESHOLD||r[1]==='delete',ms:0}}
+let emails=[],results=[],tab='all',server=false;
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-fetch('/api/config').then(r=>r.json()).then(c=>{document.getElementById('cfg').textContent=`Праг: ${c.threshold}% · Модел: ${c.ai?'Claude (API)':'ДЕМО режим (симулација, без API-клуч)'} · Gmail: ${c.gmail?'поврзан':'не е поврзан'}`});
+const cfg=document.getElementById('cfg');cfg.textContent=`Праг: ${THRESHOLD}% · ДЕМО режим (симулација во прелистувач)`;
+fetch('/api/config').then(r=>r.json()).then(c=>{server=true;cfg.textContent=`Праг: ${c.threshold}% · Модел: ${c.ai?'Claude (API)':'ДЕМО режим (симулација, без API-клуч)'} · Gmail: ${c.gmail?'поврзан':'не е поврзан'}`}).catch(()=>{});
 const parse=()=>document.getElementById('in').value.split('\n').filter(l=>l.trim()).map((l,i)=>{const[p0='',p1='',...r]=l.split('|').map(s=>s.trim());return{id:'m'+i,from:p0,subject:p1,body:r.join(' | ')}});
-async function run(list){emails=list;results=await (await fetch('/api/triage',{method:'POST',body:JSON.stringify({emails})})).json();render()}
+async function run(list){if(!list.length)return;let d;if(server){const r=await fetch('/api/triage',{method:'POST',body:JSON.stringify({emails:list})});d=await r.json();if(d.error)return alert(d.error)}else d=list.map(heuristic);emails=list;results=d;render()}
 function render(){
   const by=Object.fromEntries(emails.map(e=>[e.id,e]));
   let rs=results.filter(r=>tab==='all'||r.needsHuman).sort((a,b)=>ORDER.indexOf(a.category)-ORDER.indexOf(b.category));
@@ -63,13 +73,14 @@ function render(){
 }
 document.getElementById('out').addEventListener('change',async ev=>{
   const id=ev.target.dataset.id,e=emails.find(x=>x.id===id),r=results.find(x=>x.id===id);
-  await fetch('/api/feedback',{method:'POST',body:JSON.stringify({from:e.from,subject:e.subject,correct:{category:ev.target.value,action:r.action}})});
+  if(server)await fetch('/api/feedback',{method:'POST',body:JSON.stringify({from:e.from,subject:e.subject,correct:{category:ev.target.value,action:r.action}})});
   ev.target.blur();
 });
 document.getElementById('go').onclick=()=>run(parse());
-document.getElementById('gm').onclick=async()=>{const r=await fetch('/api/gmail');const d=await r.json();if(d.error)return alert(d.error);run(d)};
+document.getElementById('gm').onclick=async()=>{if(!server)return alert('Gmail бара локален сервер (node server.js).');const r=await fetch('/api/gmail');const d=await r.json();if(d.error)return alert(d.error);run(d)};
 document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>{tab=b.dataset.t;document.querySelectorAll('.tabs button').forEach(x=>x.classList.toggle('on',x===b));render()});
 run(parse());
+setTimeout(()=>run(parse()),300);
 </script>
 </body>
 </html>
