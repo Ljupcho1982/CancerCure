@@ -1,0 +1,8 @@
+{
+  "name": "jev-triage",
+  "version": "0.1.0",
+  "description": "Jev: fast System-1 email triage with confidence-based escalation",
+  "type": "module",
+  "scripts": { "start": "node server.js", "test": "node --test" },
+  "engines": { "node": ">=18" }
+}

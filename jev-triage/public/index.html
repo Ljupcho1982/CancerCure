@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="mk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Јев Мејл-Тријаж</title>
+<style>
+:root{--bg:#f6f7f9;--fg:#1c2330;--card:#fff;--mut:#667085;--bd:#e4e7ec;--urgent:#d92d20;--today:#dc6803;--routine:#175cd3;--info:#667085;--spam:#98a2b3}
+@media(prefers-color-scheme:dark){:root{--bg:#10141b;--fg:#e8ecf3;--card:#181d27;--mut:#98a2b3;--bd:#2a3140}}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.45 system-ui,sans-serif}
+main{max-width:860px;margin:0 auto;padding:16px}
+h1{font-size:20px;margin:0 0 4px}.sub{color:var(--mut);margin-bottom:12px}
+.bar{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}
+button{font:inherit;padding:8px 12px;border:1px solid var(--bd);border-radius:8px;background:var(--card);color:var(--fg);cursor:pointer}
+button.p{background:#175cd3;color:#fff;border-color:#175cd3}
+textarea{width:100%;min-height:96px;border:1px solid var(--bd);border-radius:8px;background:var(--card);color:var(--fg);padding:8px;font:inherit}
+.tabs button.on{border-color:#175cd3;font-weight:600}
+.card{background:var(--card);border:1px solid var(--bd);border-left:4px solid var(--c);border-radius:8px;padding:10px 12px;margin:8px 0}
+.row{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.subj{font-weight:600}.from,.why{color:var(--mut);font-size:13px}
+.tag{font-size:12px;padding:2px 8px;border-radius:99px;background:var(--c);color:#fff}
+.stats{display:flex;gap:16px;flex-wrap:wrap;color:var(--mut);font-size:13px}
+select{font:inherit;padding:4px;border-radius:6px;border:1px solid var(--bd);background:var(--card);color:var(--fg)}
+</style>
+</head>
+<body>
+<main>
+<h1>Јев Мејл-Тријаж</h1>
+<div class="sub" id="cfg">…</div>
+<p class="sub">Едно мејл-писмо по блок: <code>Од | Наслов | Текст</code>, по една линија. Јев само предлага, не брише и не праќа.</p>
+<textarea id="in">shop@promo.example | You are a WINNER! Free gift inside | Click to claim, unsubscribe below
+cto@firma.mk | URGENT: production is down | Customers cannot log in since 9am, please reply ASAP
+ana@firma.mk | Може ли состанок во четврток? | Дали можеш да потврдиш термин?
+no-reply@bank.example | Your monthly statement | Notification: your statement is ready
+lawyer@firm.example | Contract amendment for review | Please review the attached договор before Friday
+friend@mail.example | Hey | Long time no see, what's up</textarea>
+<div class="bar"><button class="p" id="go">Тријажирај</button><button id="gm">Вчитај непрочитани од Gmail</button></div>
+<div class="stats" id="stats"></div>
+<div class="bar tabs"><button data-t="all" class="on">Сите</button><button data-t="human">За човек</button></div>
+<div id="out"></div>
+</main>
+<script>
+const COL={urgent:'var(--urgent)',reply_today:'var(--today)',routine:'var(--routine)',info:'var(--info)',spam:'var(--spam)'};
+const NAME={urgent:'Хитно',reply_today:'Одговори денес',routine:'Рутинско',info:'Информативно',spam:'Спам'};
+const ACT={reply:'Одговори',delegate:'Делегирај',archive:'Архивирај',snooze:'Одложи',delete:'Избриши (потврда)'};
+const ORDER=['urgent','reply_today','routine','info','spam'];
+let emails=[],results=[],tab='all';
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+fetch('/api/config').then(r=>r.json()).then(c=>{document.getElementById('cfg').textContent=`Праг: ${c.threshold}% · Модел: ${c.ai?'Claude (API)':'правила (без API-клуч)'} · Gmail: ${c.gmail?'поврзан':'не е поврзан'}`});
+const parse=()=>document.getElementById('in').value.split('\n').filter(l=>l.trim()).map((l,i)=>{const[p0='',p1='',...r]=l.split('|').map(s=>s.trim());return{id:'m'+i,from:p0,subject:p1,body:r.join(' | ')}});
+async function run(list){emails=list;results=await (await fetch('/api/triage',{method:'POST',body:JSON.stringify({emails})})).json();render()}
+function render(){
+  const by=Object.fromEntries(emails.map(e=>[e.id,e]));
+  let rs=results.filter(r=>tab==='all'||r.needsHuman).sort((a,b)=>ORDER.indexOf(a.category)-ORDER.indexOf(b.category));
+  const auto=results.filter(r=>!r.needsHuman).length,avg=results.length?Math.round(results.reduce((s,r)=>s+r.ms,0)/results.length):0;
+  document.getElementById('stats').textContent=`Вкупно ${results.length} · автоматски ${auto} · за човек ${results.length-auto} · просек ${avg} ms`;
+  document.getElementById('out').innerHTML=rs.map(r=>{const e=by[r.id];return`<div class="card" style="--c:${COL[r.category]}">
+  <div class="row"><span class="subj">${esc(e.subject)}</span><span><span class="tag">${NAME[r.category]}</span> ${r.confidence}%</span></div>
+  <div class="from">${esc(e.from)} → ${ACT[r.action]}${r.needsHuman?' · ⚠ за човек':''}</div>
+  <div class="why">${esc(r.reason)}</div>
+  <div class="row" style="margin-top:6px"><span class="why">Погрешно?
+   <select data-id="${r.id}">${ORDER.map(c=>`<option value="${c}" ${c===r.category?'selected':''}>${NAME[c]}</option>`).join('')}</select></span></div></div>`}).join('')||'<p class="sub">Нема мејлови.</p>';
+}
+document.getElementById('out').addEventListener('change',async ev=>{
+  const id=ev.target.dataset.id,e=emails.find(x=>x.id===id),r=results.find(x=>x.id===id);
+  await fetch('/api/feedback',{method:'POST',body:JSON.stringify({from:e.from,subject:e.subject,correct:{category:ev.target.value,action:r.action}})});
+  ev.target.blur();
+});
+document.getElementById('go').onclick=()=>run(parse());
+document.getElementById('gm').onclick=async()=>{const r=await fetch('/api/gmail');const d=await r.json();if(d.error)return alert(d.error);run(d)};
+document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>{tab=b.dataset.t;document.querySelectorAll('.tabs button').forEach(x=>x.classList.toggle('on',x===b));render()});
+run(parse());
+</script>
+</body>
+</html>
