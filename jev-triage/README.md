@@ -8,7 +8,7 @@ ANTHROPIC_API_KEY=... GMAIL_ACCESS_TOKEN=... node server.js   # http://localhost
 node --test
 ```
 
-- Без `ANTHROPIC_API_KEY` работи со вградени правила (демо).
+- Без `ANTHROPIC_API_KEY` работи со вградени правила (демо, симулирано).
 - `GMAIL_ACCESS_TOKEN` (scope `gmail.readonly`) овозможува вчитување непрочитани мејлови.
 - Поправките (`feedback.json`) се враќаат во промптот како примери.
 - `JEV_MODEL` го менува моделот (default `claude-haiku-4-5-20251001`).
