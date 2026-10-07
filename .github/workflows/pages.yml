@@ -1,7 +1,7 @@
 name: Deploy to GitHub Pages
 on:
   push:
-    branches: [main, claude/admiring-cray-oxc09l]
+    branches: [main, claude/admiring-cray-oxc09l, claude/amazing-wozniak-et2wzd]
   workflow_dispatch:
 permissions:
   contents: read
@@ -19,7 +19,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Stage site
-        run: mkdir _site && cp -r index.html src _site/
+        run: mkdir _site && cp -r index.html src _site/ && mkdir -p _site/billpay-demo && cp billpay/demo/* _site/billpay-demo/
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:
