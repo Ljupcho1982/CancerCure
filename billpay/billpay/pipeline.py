@@ -20,6 +20,9 @@ def run(emails, config, extract_fn=extractor.extract):
         if not is_bill:
             skipped.append(em.id)
             continue
+        if em.authenticated is False:
+            drafts.append(PaymentDraft(None, "BLOCKED", ["sender failed SPF/DKIM (possible spoofing)"]))
+            continue
         bill = extract_fn(em, provider)
         if bill is None:
             drafts.append(PaymentDraft(None, "BLOCKED", ["could not extract fields"]))

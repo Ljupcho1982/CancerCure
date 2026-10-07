@@ -21,3 +21,17 @@ Gmail читање (OAuth, read-only scope) наместо `load_inbox`; бан�
 `billpay/demo/index.html` — самостојна страница (отвори ја во прелистувач или преку GitHub Pages: `/billpay-demo/`).
 Истиот тек во JS, уредлив сандаче/поставки, копче „Одобри“ е само симулација. Опционално користи локален Ollama.
 Тест: `node billpay/tests/pipeline.test.js`.
+
+## Gmail (read-only)
+
+    pip install -r requirements.txt
+    python -m billpay --gmail
+
+Еднаш: Google Cloud Console → нов проект → овозможи Gmail API → OAuth consent screen (External, додади се како test user) →
+Credentials → OAuth client ID (Desktop app) → симни JSON како `billpay/credentials.json`.
+Првото стартување отвора прелистувач за одобрување; токенот се чува во `billpay/token.json` (двете се во `.gitignore`).
+
+- Scope е само `gmail.readonly`: кодот не може да испраќа, брише или менува пошта. Мејловите се чуваат само во меморија.
+- Пребарување по default: `newer_than:30d (сметка OR фактура OR invoice OR bill)` (`DEFAULT_QUERY`).
+- Ако Gmail јави SPF/DKIM грешка за испраќачот, нацртот е `BLOCKED` (заштита од лажен испраќач).
+- Не се читаат прилози (PDF сметки) засега.

@@ -35,5 +35,41 @@ class T(unittest.TestCase):
         self.assertEqual(drafts[2].reasons, ["could not extract fields"])
 
 
+class FakeGmail:
+    """Mimics service.users().messages().list/get(...).execute()."""
+    def __init__(self, msgs): self.m = {x["id"]: x for x in msgs}
+    def users(self): return self
+    def messages(self): return self
+    def list(self, **kw): self._r = {"messages": [{"id": i} for i in self.m]}; return self
+    def get(self, id, **kw): self._r = self.m[id]; return self
+    def execute(self): return self._r
+
+
+class GmailTests(unittest.TestCase):
+    def _msg(self, id, frm, mime, text, auth=None):
+        import base64
+        hdr = [{"name": "From", "value": frm}, {"name": "Subject", "value": "Сметка"}]
+        if auth: hdr.append({"name": "Authentication-Results", "value": auth})
+        data = base64.urlsafe_b64encode(text.encode()).decode().rstrip("=")
+        return {"id": id, "payload": {"headers": hdr, "mimeType": "multipart/alternative",
+                "parts": [{"mimeType": mime, "body": {"data": data}}]}}
+
+    def test_fetch_and_flow(self):
+        from billpay.gmail_source import fetch_emails
+        cfg = json.loads((R / "fixtures/config.json").read_text(encoding="utf-8"))
+        body = "Износ: 1.450 ден. Жиро-сметка: MK07300000000012345. Повикување на број: A1"
+        svc = FakeGmail([
+            self._msg("a", "EVN <billing@evn.mk>", "text/plain", body, "mx; dkim=pass"),
+            self._msg("b", "billing@evn.mk", "text/html", "<p>" + body.replace(". ", ".<br>") + "</p>", "mx; spf=fail"),
+        ])
+        emails = fetch_emails(svc)
+        self.assertEqual(emails[0].sender, "billing@evn.mk")
+        self.assertTrue(emails[0].authenticated)
+        self.assertFalse(emails[1].authenticated)
+        drafts, _ = run(emails, cfg)
+        self.assertEqual(drafts[0].status, "READY_FOR_APPROVAL")
+        self.assertEqual(drafts[1].reasons, ["sender failed SPF/DKIM (possible spoofing)"])
+
+
 if __name__ == "__main__":
     unittest.main()

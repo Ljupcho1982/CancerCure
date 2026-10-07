@@ -9,6 +9,7 @@ class Email:
     sender: str
     subject: str
     body: str
+    authenticated: Optional[bool] = None   # SPF/DKIM verdict from the mail provider; None = unknown
 
 
 @dataclass
