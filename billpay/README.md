@@ -15,3 +15,9 @@ Gmail читање (OAuth, read-only scope) наместо `load_inbox`; бан�
     BILLPAY_BACKEND=ollama BILLPAY_MODEL=qwen2.5:7b python -m billpay
 
 `OLLAMA_HOST` (default `http://localhost:11434`). Невалиден излез од моделот → `BLOCKED`; `guard` останува иста.
+
+## Веб демо
+
+`billpay/demo/index.html` — самостојна страница (отвори ја во прелистувач или преку GitHub Pages: `/billpay-demo/`).
+Истиот тек во JS, уредлив сандаче/поставки, копче „Одобри“ е само симулација. Опционално користи локален Ollama.
+Тест: `node billpay/tests/pipeline.test.js`.

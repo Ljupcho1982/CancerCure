@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="mk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>BillPay Demo</title>
+<style>
+:root{--bg:#f6f7f9;--card:#fff;--fg:#1c2330;--mut:#667085;--ok:#177245;--okbg:#e4f5ec;--bad:#b42318;--badbg:#fde8e6;--skip:#667085;--line:#e1e5ea;--acc:#2f5bd8}
+@media(prefers-color-scheme:dark){:root{--bg:#12151b;--card:#1b2029;--fg:#e8ebf0;--mut:#9aa4b2;--ok:#5fd394;--okbg:#14301f;--bad:#ff8c82;--badbg:#3a1a17;--line:#2b323d;--acc:#7d9bff}}
+*{box-sizing:border-box}body{margin:0;font:16px/1.5 system-ui,sans-serif;background:var(--bg);color:var(--fg)}
+header,main{max-width:900px;margin:0 auto;padding:16px}
+h1{margin:8px 0 0;font-size:1.5rem}.sub{color:var(--mut);margin:4px 0 0}
+.banner{background:var(--badbg);color:var(--bad);border-radius:8px;padding:8px 12px;margin-top:12px;font-size:.9rem}
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px;margin:12px 0}
+.grid{display:grid;gap:12px;grid-template-columns:1fr 1fr}@media(max-width:700px){.grid{grid-template-columns:1fr}}
+label{display:block;font-size:.85rem;color:var(--mut);margin-top:8px}
+input,textarea,select{width:100%;padding:8px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--fg);font:inherit}
+textarea{min-height:80px}
+button{background:var(--acc);color:#fff;border:0;border-radius:8px;padding:9px 14px;font:inherit;cursor:pointer}
+button.sec{background:transparent;color:var(--acc);border:1px solid var(--acc)}button:disabled{opacity:.5;cursor:default}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.badge{display:inline-block;border-radius:999px;padding:2px 10px;font-size:.8rem;font-weight:600}
+.READY_FOR_APPROVAL{background:var(--okbg);color:var(--ok)}.BLOCKED{background:var(--badbg);color:var(--bad)}.skipped{background:var(--line);color:var(--skip)}
+.mono{font-family:ui-monospace,monospace;font-size:.9rem}.why{color:var(--bad);font-size:.9rem;margin:4px 0 0}
+h2{font-size:1.05rem;margin:0 0 6px}small{color:var(--mut)}
+</style>
+</head>
+<body>
+<header>
+  <h1>BillPay — демо</h1>
+  <p class="sub">Е-пошта → класификација → извлекување → безбедносни проверки → нацрт за плаќање.</p>
+  <div class="banner"><b>DEMO / DRY RUN:</b> ништо не се плаќа и ништо не излегува од вашиот прелистувач (освен ако не вклучите Ollama на localhost).</div>
+</header>
+<main>
+  <div class="grid">
+    <div class="card"><h2>Сандаче</h2><div id="inbox"></div>
+      <details><summary>Додади свој мејл</summary>
+        <label>Испраќач<input id="n-sender" value="billing@evn.mk"></label>
+        <label>Наслов<input id="n-subject" value="Сметка за струја"></label>
+        <label>Текст<textarea id="n-body">Износ: 2.100 ден. Жиро-сметка: MK07300000000012345. Повикување на број: 2026-11-001</textarea></label>
+        <p><button class="sec" id="add">Додади</button></p>
+      </details>
+    </div>
+    <div class="card"><h2>Поставки</h2>
+      <label>Дозволени провајдери (JSON)<textarea id="providers" class="mono"></textarea></label>
+      <label>Макс. износ<input id="max" type="number" value="10000"></label>
+      <label>Претходен износ EVN (за проверка на скок)<input id="hist" type="number" value="1400"></label>
+      <label>Екстрактор<select id="backend"><option value="regex">Regex (без модел)</option><option value="ollama">Ollama (локален модел)</option></select></label>
+      <div id="ollama" hidden>
+        <label>Ollama host<input id="host" value="http://localhost:11434"></label>
+        <label>Модел<input id="model" value="qwen2.5:7b"></label>
+        <small>Потребно: <span class="mono">OLLAMA_ORIGINS=* ollama serve</span></small>
+      </div>
+    </div>
+  </div>
+  <p class="row"><button id="run">Обработи</button><span id="status"></span></p>
+  <div id="results"></div>
+</main>
+<script src="pipeline.js"></script>
+<script>
+const $=id=>document.getElementById(id);
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+let emails=[
+ {id:"1",sender:"billing@evn.mk",subject:"Сметка за струја",body:"Почитувани, износ: 1.450 ден. Жиро-сметка: MK07300000000012345. Повикување на број: 2026-10-4471"},
+ {id:"2",sender:"promo@shop.mk",subject:"50% попуст!",body:"Купи сега, ексклузивна понуда."},
+ {id:"3",sender:"billing@vodovod.mk",subject:"Фактура за вода",body:"Износ: 620 ден. Жиро-сметка: MK07200000000011111. Повикување на број: V-889"},
+ {id:"4",sender:"billing@evn.mk",subject:"Сметка",body:"Износ: 9.800 ден. Жиро-сметка: MK07300000000012345. Повикување на број: 2026-10-4999"}];
+$("providers").value=JSON.stringify({EVN:{domain:"evn.mk",account:"MK07300000000012345"},Vodovod:{domain:"vodovod.mk",account:"MK07200000000099887"}},null,1);
+function renderInbox(){$("inbox").innerHTML=emails.map(e=>`<div style="margin-bottom:8px"><b>${esc(e.subject)}</b><br><small>${esc(e.sender)}</small><br><small>${esc(e.body)}</small></div>`).join("")}
+$("backend").onchange=()=>$("ollama").hidden=$("backend").value!=="ollama";
+$("add").onclick=()=>{emails.push({id:String(emails.length+1),sender:$("n-sender").value,subject:$("n-subject").value,body:$("n-body").value});renderInbox()};
+$("run").onclick=async()=>{
+  let providers;try{providers=JSON.parse($("providers").value)}catch(e){$("status").textContent="Невалиден JSON во провајдери";return}
+  const cfg={providers,maxAmount:+$("max").value,history:{EVN:+$("hist").value||undefined}};
+  const ex=$("backend").value==="ollama"?(e,p)=>BillPay.extractOllama(e,p,$("host").value,$("model").value):undefined;
+  $("run").disabled=true;$("status").textContent="Обработувам…";
+  const res=await BillPay.run(emails,cfg,ex);
+  $("run").disabled=false;$("status").textContent="";
+  $("results").innerHTML=res.map((r,i)=>{
+    if(r.kind==="skipped")return `<div class="card"><span class="badge skipped">ПРЕСКОКНАТО</span> ${esc(r.email.subject)} <small>— не е сметка</small></div>`;
+    const b=r.bill,ok=r.status==="READY_FOR_APPROVAL";
+    return `<div class="card"><span class="badge ${r.status}">${ok?"СПРЕМНО ЗА ОДОБРУВАЊЕ":"БЛОКИРАНО"}</span> <b>${esc(r.email.subject)}</b>
+      ${b?`<p class="mono">${esc(b.provider)}: ${b.amount} ${b.currency}<br>→ ${esc(b.account)}<br>повикување: ${esc(b.reference)}</p>`:""}
+      ${r.reasons.map(x=>`<p class="why">⚠ ${esc(x)}</p>`).join("")}
+      ${ok?`<button data-i="${i}" class="pay">Одобри (симулација)</button>`:""}</div>`}).join("");
+  document.querySelectorAll(".pay").forEach(b=>b.onclick=()=>{b.disabled=true;b.textContent="✓ Симулирано одобрено — ништо не е платено"});
+};
+renderInbox();
+</script>
+</body>
+</html>
