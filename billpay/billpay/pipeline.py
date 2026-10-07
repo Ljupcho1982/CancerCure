@@ -10,7 +10,7 @@ def load_inbox(path):
     return [Email(**e) for e in json.loads(Path(path).read_text(encoding="utf-8"))]
 
 
-def run(emails, config):
+def run(emails, config, extract_fn=extractor.extract):
     providers = config["providers"]
     known = {p["domain"]: name for name, p in providers.items()}
     max_amount = Decimal(str(config["max_amount"]))
@@ -20,7 +20,7 @@ def run(emails, config):
         if not is_bill:
             skipped.append(em.id)
             continue
-        bill = extractor.extract(em, provider)
+        bill = extract_fn(em, provider)
         if bill is None:
             drafts.append(PaymentDraft(None, "BLOCKED", ["could not extract fields"]))
             continue
