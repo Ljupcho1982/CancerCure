@@ -1,0 +1,8 @@
+{
+  "max_amount": 10000,
+  "history": {"EVN": 1400},
+  "providers": {
+    "EVN": {"domain": "evn.mk", "account": "MK07300000000012345"},
+    "Vodovod": {"domain": "vodovod.mk", "account": "MK07200000000099887"}
+  }
+}
